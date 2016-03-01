@@ -2,6 +2,7 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.5'
 }
 
+
 allprojects {
 	apply from: "$rootDir/gradle/versioning.gradle"
 }
@@ -16,9 +17,17 @@ ext.config = parsedConfig
 
 buildscript {
     repositories {
-	mavenLocal()
+	maven {
+		url jcenterLocalRepoPath
+		credentials {
+			username = repoUserName
+			password = repoPassword
+		}
+	}
 	//jcenter()
+	mavenCentral()
     }
+
     dependencies {
         classpath 'com.bmuschko:gradle-cargo-plugin:2.1.1'
     }
@@ -34,8 +43,8 @@ gradle.projectsEvaluated {
 
         cargo {
             containerId = config.server.containerId
-        port = config.server.port.toInteger()
-    
+	    port = config.server.port.toInteger()
+	
             remote {
                 hostname = config.server.hostname
                 username = config.server.username
@@ -43,5 +52,6 @@ gradle.projectsEvaluated {
             }
         }
     }
+    
 }
 

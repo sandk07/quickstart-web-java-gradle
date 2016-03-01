@@ -3,31 +3,42 @@ task wrapper(type: Wrapper) {
 }
 
 project(':web') {
+
 	apply plugin: 'java'
 	apply plugin: 'war'
+	apply plugin: 'pmd'
+	apply plugin: "jdepend"
 	apply plugin: 'sonar-runner'
 	apply plugin: 'maven'
-	apply plugin: 'maven-publish'
+	apply plugin: 'maven-publish'	
 	apply plugin: 'com.bmuschko.cargo'
-	
+
 	repositories {
-		mavenLocal()
+		maven {
+			url jcenterLocalRepoPath
+			credentials {
+				username = repoUserName
+				password = repoPassword
+			}
+		}
+		maven {
+			url mavenLocalRepoPath
+			credentials {
+				username = repoUserName
+				password = repoPassword
+			}
+		}
+		//jcenter()
 		//mavenCentral()
+		
 	}
 
 	dependencies {
-		compile group: 'commons-io', name: 'commons-io', version: '1.4'
-		compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
-		
-		providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
-		compile 'org.springframework:spring-webmvc:4.2.0.RELEASE'
-		runtime 'javax.servlet:jstl:1.1.2'
-		
-		compile 'org.seleniumhq.selenium:selenium-java:2.46.0'
-		compile 'org.testng:testng:6.8'
+	    compile group: 'commons-io', name: 'commons-io', version: '1.4'
+	    compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
         }
 
-        sourceSets {
+	sourceSets {
 		integrationTest {
 			java.srcDir file("src/test-integration/java")
 			resources.srcDir file("src/test-integration/resources")
@@ -66,6 +77,21 @@ project(':web') {
 		}
 	}
 
+	pmd {
+		ignoreFailures = true
+	}
+	tasks.withType(Pmd) {
+		reports {
+			xml.enabled = false
+			html.enabled = true
+		}
+	}
+	
+	jdepend {
+		toolVersion = '2.9.1'
+		ignoreFailures = true
+	}
+
 	sonarRunner {
 	    sonarProperties {
 		property "sonar.host.url", sonarHostUrl
@@ -73,6 +99,7 @@ project(':web') {
 		property "sonar.jdbc.driverClassName", sonarJdbcDriverClassName
 		property "sonar.jdbc.username", sonarJdbcUserName
 		property "sonar.jdbc.password", sonarJdbcPassword
+		property "sonar.projectName", appName
 	    }
 	}
 
@@ -88,7 +115,7 @@ project(':web') {
 		repositories{
 			mavenDeployer{
 				repository(url: releasesRepoPath){
-					authentication(userName:repoUserName, password:repoPassword)
+					authentication(userName: repoUserName,password:repoPassword)
 				}
 			}
 		}
@@ -136,7 +163,7 @@ project(':web') {
 
 	task downloadBinaryArchive(type: Copy) {		
 		from configurations.downloadWar
-		into "$buildDir/libs"		
+		into "$buildDir\\libs"		
 	}
 
 	cargo {
@@ -155,27 +182,47 @@ project(':web') {
 	    }
 	}
 
+	def testResultsDir
+	def testReportDir
 	//Integration Test
+	def integrationTestReportDir = file("$buildDir/reports/tests/integration")
+	def integrationTestResultsDir = file("$buildDir/test-results/integration")
 	task integrationTest(type: Test) {
 		description = 'Runs the integration tests.'
 		group = 'verification'
 		testClassesDir = sourceSets.integrationTest.output.classesDir
 		classpath = sourceSets.integrationTest.runtimeClasspath
+		testReportDir = integrationTestReportDir
+		testResultsDir = integrationTestResultsDir
 	}
 
 	//Performance Test
-	task performanceTest(type: Test) {
+	def performanceTestReportDir = file("$buildDir/reports/tests/performance")
+	def performanceTestResultsDir = file("$buildDir/test-results/performance")
+	task perforamnceTest(type: Test) {
 		description = 'Runs the performance tests.'
 		group = 'verification'
 		testClassesDir = sourceSets.performanceTest.output.classesDir
 		classpath = sourceSets.performanceTest.runtimeClasspath
+		testReportDir = performanceTestReportDir
+		testResultsDir = performanceTestResultsDir
 	}
 
 	//Functional Test
+	def functionalTestReportDir = file("$buildDir/reports/tests/functional")
+	def functionalTestResultsDir = file("$buildDir/test-results/functional")
+	def functionalCommonSystemProperties =
+		['geb.env': 'firefox',
+		'geb.build.reportsDir': reporting.file("$name/geb")]
 	task functionalTest(type: Test) {
 		testClassesDir = sourceSets.functionalTest.output.classesDir
 		classpath = sourceSets.functionalTest.runtimeClasspath
+		testReportDir = functionalTestReportDir
+		testResultsDir = functionalTestResultsDir
+		systemProperties functionalCommonSystemProperties
+		systemProperty 'geb.build.baseUrl', "http://$config.server.hostname:$config.server.port/$config.server.context/"
 	}
+
 }
 
 

@@ -29,14 +29,14 @@ project(':web') {
 			}
 		}
 		//jcenter()
-		//mavenCentral()
+		mavenCentral()
 		
 	}
 
 	dependencies {
 	    compile group: 'commons-io', name: 'commons-io', version: '1.4'
 	    compile group: 'log4j', name: 'log4j', version: '1.2.15', ext: 'jar'
-        }
+    }
 
 	sourceSets {
 		integrationTest {
@@ -94,12 +94,12 @@ project(':web') {
 
 	sonarRunner {
 	    sonarProperties {
-		property "sonar.host.url", sonarHostUrl
-		property "sonar.jdbc.url", sonarJdbcUrl
-		property "sonar.jdbc.driverClassName", sonarJdbcDriverClassName
-		property "sonar.jdbc.username", sonarJdbcUserName
-		property "sonar.jdbc.password", sonarJdbcPassword
-		property "sonar.projectName", appName
+			property "sonar.host.url", sonarHostUrl
+			property "sonar.jdbc.url", sonarJdbcUrl
+			property "sonar.jdbc.driverClassName", sonarJdbcDriverClassName
+			property "sonar.jdbc.username", sonarJdbcUserName
+			property "sonar.jdbc.password", sonarJdbcPassword
+			property "sonar.projectName", appName
 	    }
 	}
 
@@ -154,10 +154,10 @@ project(':web') {
 	dependencies {		
 		downloadWar ("$mavenGroupId:$appName:$project.version@war"){ 
 			 artifact {
-				name = "$appName"
-				extension = 'war'
-				type = 'war'
-			}
+					name = "$appName"
+					extension = 'war'
+					type = 'war'
+				}
     		}
 	}
 
@@ -173,12 +173,12 @@ project(':web') {
 	    deployable {
 	    	def fileName = appName+"-"+version
 	    	def filePath = "$buildDir/libs/$fileName"+".war"
-		file = new File ("$buildDir/libs/$fileName"+".war")
-		context = appName
+			file = new File ("$buildDir/libs/$fileName"+".war")
+			context = appName
 	    }
 
 	    local {
-		homeDir = file(config.server.localHomeDir)
+			homeDir = file(config.server.localHomeDir)
 	    }
 	}
 
@@ -214,13 +214,14 @@ project(':web') {
 	def functionalCommonSystemProperties =
 		['geb.env': 'firefox',
 		'geb.build.reportsDir': reporting.file("$name/geb")]
+		
 	task functionalTest(type: Test) {
-		testClassesDir = sourceSets.functionalTest.output.classesDir
+		/*testClassesDir = sourceSets.functionalTest.output.classesDir
 		classpath = sourceSets.functionalTest.runtimeClasspath
 		testReportDir = functionalTestReportDir
 		testResultsDir = functionalTestResultsDir
 		systemProperties functionalCommonSystemProperties
-		systemProperty 'geb.build.baseUrl', "http://$config.server.hostname:$config.server.port/$config.server.context/"
+		systemProperty 'geb.build.baseUrl', "http://$config.server.hostname:$config.server.port/$config.server.context/"*/
 	}
 
 }
